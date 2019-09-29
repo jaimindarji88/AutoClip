@@ -10,16 +10,42 @@
             integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
             crossorigin="anonymous"></script>
     <script src="viewer.js" type="text/javascript"></script>
-    <h2>Hello, World!</h2>
-    <p>Would you care to cycle a color?</p>
-    <div>
-        <input type="button" id="cycle" disabled="disabled" value="Yes, I would" />
-    </div>
-    <div style="float: left; position: relative; left: 50%">
-        <div id="color" style="border-radius: 50px; transition: background-color 0.5s ease; margin-top: 30px; width: 100px; height: 100px; background-color: #6441A4; float: left; position: relative; left: -50%">
-        </div>
-    </div>
-    <div id="list">
+    <div class='app'>
+
     </div>
 </body>
+
+<script>
+var ws = new WebSocket("ws://127.0.0.1:5678/");
+ws.onmessage = function(event) {
+    console.log(event)
+}
+
+
+async function createClipIframe(clipId) {
+    const iframe = document.createElement('iframe');
+    iframe.width = 400;
+    iframe.height = 300;
+    iframe.scrolling = 'no';
+    iframe.style = 'border:none;'
+    iframe.allowfullscreen = 'false'
+    iframe.src = `https://clips.twitch.tv/embed?clip=${clipId}`
+
+    iframe.onload = async function() {
+        const res = await fetch(`https://clips.twitch.tv/api/v2/clips/${clipId}`);
+        const json = await res.json();
+        const { duration } = json;
+    
+        if (duration) {
+            setTimeout(() => {
+                iframe.remove();
+            }, duration * 1000);
+        }
+    }
+    document.querySelector('.app').appendChild(iframe);
+}
+
+const cid = 'AmazonianEncouragingLyrebirdAllenHuhu';
+createClipIframe(cid);
+</script>
 </html>
