@@ -1,0 +1,8 @@
+#Python 3.6.1 64 bit is necessary for OBS and Google Cloud API compadibility
+requests
+selenium
+chromedriver-binary
+PyAudio
+SpeechRecognition
+google-cloud-speech
+google-api-core
