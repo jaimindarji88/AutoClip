@@ -1,0 +1,2 @@
+# AutoClip
+Clips automatically
