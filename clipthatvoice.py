@@ -6,7 +6,11 @@ from selenium import webdriver
 from urllib.parse import urlsplit
 import time
 
-
+import asyncio
+import datetime
+import random
+import websockets
+from websocket import create_connection
 import re
 import sys
 
@@ -27,6 +31,7 @@ source_name = ""
 broadcaster_id = ""
 access_token = ""
 clipEditURL = ""
+clipID = None
 chromeDriverPath = ""
 chromeProfilePath = ""
 responses = ""
@@ -96,6 +101,7 @@ class MicrophoneStream(object):
 def listen_print_loop():
     global responses
     global transcript
+    global clipID
     """
     recognized_text = "Transcribed text: \n"
     for response in responses:
@@ -103,6 +109,13 @@ def listen_print_loop():
             recognized_text += response['results'][i]['alternatives'][0]['transcript']
 
     """
+    if(clipID is not None):
+        print("fuck me")
+        ws = create_connection("ws://127.0.0.1:5678/")
+        ws.send(clipID)
+        ws.close()
+        clipID = None
+
     try:   
         response=responses.next()
     except StopIteration:
@@ -130,6 +143,7 @@ def listen_print_loop():
     #overwrite_chars = ' ' *  (num_chars_printed - len(transcript))
    
 def main():
+    print("HI IM MAIN")
     global responses
     language_code= 'en-US'
 
@@ -188,17 +202,19 @@ def authenticate():
 	print("Successfully Authenticated, Grabbed Bearer Token")
 
 def createClip():
-	global clipEditURL
-	headerElm = "Bearer " + access_token
-	postURL = "https://api.twitch.tv/helix/clips?broadcaster_id=" + broadcaster_id
-	response = requests.post(postURL, headers={"Authorization" : headerElm})
-	responsedata = response.json()
-	if("error" in responsedata):
-		print("WARNING ERROR:", responsedata["error"], responsedata["message"])
-	else:
-		update_text()
-		clipEditURL = responsedata["data"][0]["edit_url"]
-		print("Clip Edit URL:", clipEditURL)
+    global clipEditURL
+    global clipID
+    headerElm = "Bearer " + access_token
+    postURL = "https://api.twitch.tv/helix/clips?broadcaster_id=" + broadcaster_id
+    response = requests.post(postURL, headers={"Authorization" : headerElm})
+    responsedata = response.json()
+    if("error" in responsedata):
+    	print("WARNING ERROR:", responsedata["error"], responsedata["message"])
+    else:
+        clipEditURL = responsedata["data"][0]["edit_url"]
+        clipID = responsedata["data"][0]["id"]
+
+        print("Clip Edit URL:", clipEditURL)
 
 def openClipEdit():
 	if(clipEditURL):
@@ -231,14 +247,23 @@ def clip_pressed(props, prop):
 	createClip()
 
 def start_pressed(pros, prop):
-	print("Start button pressed")
-	getBroadcasterID()
-	authenticate()
-	main()
+    print("Start button pressed")
+    getBroadcasterID()
+    authenticate()
+    main()
+    # start_server = websockets.serve(main, "127.0.0.1", 5678)
+    # print("crashing")
+
+    # asyncio.get_event_loop().run_until_complete(start_server)
+    # asyncio.get_event_loop().run_forever()
+
+
 
 def clipedit_pressed(pros, prop):
 	print("Clip Edit button pressed")
 	openClipEdit()
+
+
 
 
 # ------------------------------------------------------------

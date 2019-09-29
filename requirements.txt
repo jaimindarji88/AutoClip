@@ -6,3 +6,4 @@ PyAudio
 SpeechRecognition
 google-cloud-speech
 google-api-core
+websockets
